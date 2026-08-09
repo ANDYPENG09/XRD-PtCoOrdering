@@ -44,6 +44,12 @@ Adjust the four peak regions and reference intensities as needed, then
 
 See `LICENSE_AUDIT.md` for the full license/copyright audit.
 
+## Data & applicability
+
+These tools are developed from my own measured XRD datasets. They are currently
+best adapted for PtCo alloy (L1₀ ordering) and Pt/C catalysts. I will keep
+extending them to more sample types as my measurement data grows.
+
 ## License
 
-MIT © 2026 PENG (Andy Peng)
+MIT © 2026 Yu Peng
