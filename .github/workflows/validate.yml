@@ -1,4 +1,4 @@
-name: Numerical and UI regressions
+name: Validate and release
 on:
   push:
     branches: [main]
@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: xrd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -17,3 +20,50 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+  release:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare versioned offline HTML
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release version" >&2
+            exit 1
+          fi
+          test -s ".github/release-notes/v${version}.md"
+          mkdir -p dist
+          cp index.html "dist/XRD-PtCoOrdering-v${version}.html"
+          (
+            cd dist
+            sha256sum *.html > SHA256SUMS.txt
+          )
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Publish a new version with downloadable HTML
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ steps.package.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v${RELEASE_VERSION}"
+          exists="$(gh release list --limit 100 --json tagName --jq "any(.[]; .tagName == \"${tag}\")")"
+          if [[ "$exists" == "true" ]]; then
+            echo "Release ${tag} already exists; preserving its tag and assets."
+            exit 0
+          fi
+          gh release create "$tag" \
+            --target "$GITHUB_SHA" \
+            --title "XRD-PtCoOrdering ${tag}" \
+            --notes-file ".github/release-notes/${tag}.md" \
+            --latest \
+            "dist/XRD-PtCoOrdering-${tag}.html#Offline single-file application" \
+            "dist/SHA256SUMS.txt#SHA-256 checksum"

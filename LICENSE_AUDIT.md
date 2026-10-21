@@ -45,3 +45,8 @@ These are **ideas/methods**, not copyrightable code; the implementations are ori
 - Code is safe to release under MIT.
 - Keep both repositories **private** for now (per user instruction), especially while the demo embeds reconstructed real-sample peak parameters; revisit publicity after confirming employer (CAIC) data/IP policy.
 - Each repo ships: `index.html` (the tool), `README.md`, `LICENSE`.
+
+
+## v2.0.0 integration (2026-10-21)
+
+The Scherrer, instrumental-profile correction, multi-peak and Williamson–Hall functionality is integrated from ANDYPENG09/XRD-Scherrer (MIT, same PENG copyright holder), with revised shared numerical routines. Retain the root MIT LICENSE. The new UI, translations, fit routines and tests use browser/Node standard APIs; the released HTML has no third-party runtime dependency. jsdom remains a development-only dependency. The supplied formula image is transcribed as mathematical equations; the image itself is not redistributed.
